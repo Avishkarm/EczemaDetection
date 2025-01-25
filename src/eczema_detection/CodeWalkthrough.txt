@@ -1,0 +1,107 @@
+# -*- coding: utf-8 -*-
+"""
+Gemini_Eczema.ipynb
+
+This script uses Google Generative AI (Gemini model) to analyze an image for eczema detection.
+It includes functionality to determine whether an image depicts skin, identify the body part, 
+evaluate if the image shows eczema, assess its severity, and suggest remedies. Patient details 
+are incorporated into the prompts to inspect how the model's output changes based on user input.
+
+Original file: https://colab.research.google.com/github/Avishkarm/EczemaDetection/blob/main/src/eczema_detection/Gemini_Eczema.ipynb
+"""
+
+# Commented out IPython magic commands for compatibility
+# Uncomment these lines to install the required packages if running in Colab
+# %pip install -q -U google-generativeai
+# %pip install python-dotenv
+
+# Import necessary libraries
+import google.generativeai as genai  # Google Generative AI library
+from IPython.display import Markdown  # For rendering Markdown outputs
+import os  # For environment variable management
+from dotenv import load_dotenv  # To load environment variables from a .env file
+
+"""
+Generate your API key here: https://aistudio.google.com/app/apikey
+Add the API key to a `.env` file in the following format:
+GOOGLE_API_KEY=your-api-key
+"""
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Retrieve the API key from the environment variable
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+
+# Raise an error if the API key is not found
+if GOOGLE_API_KEY is None:
+    raise ValueError("API key not found. Please set it as an environment variable: GOOGLE_API_KEY")
+
+# Configure the Generative AI client with the API key
+genai.configure(api_key=GOOGLE_API_KEY)
+print("API key configured successfully!")
+
+# Upload a sample image from the dataset
+sample_file = genai.upload_file(
+    path=r"..\..\dataset\eczema\Eczema of Hands\eczema-hand-189.jpg",
+    display_name="Sample image"
+)
+
+# Retrieve the uploaded file's details
+file = genai.get_file(name=sample_file.name)
+print(f"Retrieved file '{file.display_name}' as: {sample_file.uri}")
+
+# Select a Gemini model for generative AI tasks
+model = genai.GenerativeModel(model_name="gemini-1.5-pro-latest")
+
+# Step 1: Detect if the image contains skin and identify the body part
+prompt = "Return whether the provided image is skin or not and which part of the body it is."
+response = model.generate_content([sample_file, prompt])
+
+# Display the response
+Markdown(response.text)
+
+# Step 2: Check if the image depicts eczema and evaluate severity
+prompt = (
+    "Return whether the provided image is a case of eczema, explain how severe the case is, "
+    "and what remedies can be availed."
+)
+response = model.generate_content([sample_file, prompt])
+
+# Display the response
+Markdown(response.text)
+
+# Step 3: Add patient details to analyze output changes
+# Define patient details (Scenario 1)
+age = 30  # Patient's age in years
+gender = "Female"  # Patient's gender
+height = 170  # Patient's height in cm
+weight = 100  # Patient's weight in kg
+
+# Create a detailed prompt including patient information
+detailed_prompt = (
+    f"Patient details: Age: {age}, Gender: {gender}, Height: {height} cm, Weight: {weight} kg. "
+    f"Return whether the provided image is a case of eczema, explain how severe the case is, "
+    f"and what remedies can be availed."
+)
+response = model.generate_content([sample_file, detailed_prompt])
+
+# Display the response
+Markdown(response.text)
+
+# Define patient details (Scenario 2)
+age = 12  # Patient's age in years
+gender = "Male"  # Patient's gender
+height = 145  # Patient's height in cm
+weight = 30  # Patient's weight in kg
+
+# Create another detailed prompt for this patient
+detailed_prompt = (
+    f"Patient details: Age: {age}, Gender: {gender}, Height: {height} cm, Weight: {weight} kg. "
+    f"Return whether the provided image is a case of eczema, explain how severe the case is, "
+    f"and what remedies can be availed."
+)
+response = model.generate_content([sample_file, detailed_prompt])
+
+# Display the response
+Markdown(response.text)
